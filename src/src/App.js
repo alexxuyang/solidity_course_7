@@ -2,477 +2,21 @@ import './App.css';
 import React, { useState, useEffect } from 'react';
 import Web3 from "web3/dist/web3.min.js";
 
+var erc20abi = require('./abi.json');
 var web3;
 var currentAccount;
-var erc20abi = [
-  {
-    "inputs": [
-      {
-        "internalType": "string",
-        "name": "_name",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "_symbol",
-        "type": "string"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "owner",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "spender",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "value",
-        "type": "uint256"
-      }
-    ],
-    "name": "Approval",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "previousOwner",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "newOwner",
-        "type": "address"
-      }
-    ],
-    "name": "OwnershipTransferred",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "from",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "to",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "value",
-        "type": "uint256"
-      }
-    ],
-    "name": "Transfer",
-    "type": "event"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "owner",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "spender",
-        "type": "address"
-      }
-    ],
-    "name": "allowance",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function",
-    "constant": true
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "spender",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "approve",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      }
-    ],
-    "name": "balanceOf",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function",
-    "constant": true
-  },
-  {
-    "inputs": [],
-    "name": "decimals",
-    "outputs": [
-      {
-        "internalType": "uint8",
-        "name": "",
-        "type": "uint8"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function",
-    "constant": true
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "spender",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "subtractedValue",
-        "type": "uint256"
-      }
-    ],
-    "name": "decreaseAllowance",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "spender",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "addedValue",
-        "type": "uint256"
-      }
-    ],
-    "name": "increaseAllowance",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "name",
-    "outputs": [
-      {
-        "internalType": "string",
-        "name": "",
-        "type": "string"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function",
-    "constant": true
-  },
-  {
-    "inputs": [],
-    "name": "owner",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function",
-    "constant": true
-  },
-  {
-    "inputs": [],
-    "name": "renounceOwnership",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "symbol",
-    "outputs": [
-      {
-        "internalType": "string",
-        "name": "",
-        "type": "string"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function",
-    "constant": true
-  },
-  {
-    "inputs": [],
-    "name": "totalSupply",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function",
-    "constant": true
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "from",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "to",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "transferFrom",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "newOwner",
-        "type": "address"
-      }
-    ],
-    "name": "transferOwnership",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "fee",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function",
-    "constant": true
-  },
-  {
-    "inputs": [],
-    "name": "burnAmount",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function",
-    "constant": true
-  },
-  {
-    "inputs": [],
-    "name": "feeCollector",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function",
-    "constant": true
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "burn",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "receiver",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "mint",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "fee_",
-        "type": "uint256"
-      }
-    ],
-    "name": "setFee",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "feeCollector_",
-        "type": "address"
-      }
-    ],
-    "name": "setFeeCollector",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "burnAmount_",
-        "type": "uint256"
-      }
-    ],
-    "name": "setBurnAmount",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "to",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "transfer",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  }
-];
 
 function App() {
   const [chainID, setChainID] = useState('');
   const [blockNumber, setBlockNumber] = useState('');
   const [blockTimestamp, setBlockTimestamp] = useState(null);
-  // const [currentAccount, setCurrentAccount] = useState(null);
+  const [account, setAccount] = useState(null);
   const [balance, setBalance] = useState('');
-  const [contract, setContract] = useState('');
-  const [toAddress, setToAddress] = useState('');
-  const [amount, setAmount] = useState('');
+  const [contract, setContract] = useState('0x6e79ce0A3400299eb2e5AFE14161d80297030935');
+  const [toAddress, setToAddress] = useState('0xBc461fA713b5EeAc7BE790bF4a1A1C7bBa6332dc');
+  const [amount, setAmount] = useState('10');
+  const [mintAmount, setMintAmount] = useState('1000');
+  const [burnAmount, setBurnAmount] = useState('100');
   const [tokenSymbol, setTokenSymbol] = useState('');
   const [totalSupply, setTotalSupply] = useState('');
   const [tokenBalance, setTokenBalance] = useState('');
@@ -483,35 +27,8 @@ function App() {
   const handleContractChange = (event) => {setContract(event.target.value)};
   const handleToAddressChange = (event) => {setToAddress(event.target.value)};
   const handleAmountChange = (event) => {setAmount(event.target.value)};
-
-  const getData = async () => {
-    try {
-      if(web3 != null && currentAccount != null) {
-        setChainID(await web3.eth.getChainId());
-        let bn = await web3.eth.getBlockNumber();
-        setBlockNumber(bn);
-        let block = await web3.eth.getBlock(bn);
-        setBlockTimestamp(block.timestamp);
-        let bal = await web3.eth.getBalance(currentAccount);
-        setBalance(web3.utils.fromWei(bal));
-      }
-    } catch (e) {
-      console.log(e);
-    } finally {
-    }
-  }
-
-  useEffect(() => {
-    getData();
-
-    const interval = setInterval(() => {
-      getData();
-    }, 5000);
-    return () => {
-      clearInterval(interval);
-    };
-
-  }, []);
+  const handleMintAmountChange = (event) => {setMintAmount(event.target.value)};
+  const handleBurnAmountChange = (event) => {setBurnAmount(event.target.value)};
 
   const connectWallet = async () => {
     if(window.ethereum) {
@@ -519,17 +36,25 @@ function App() {
 
       if(accounts.length != 0) {
         web3 = new Web3(window.ethereum);
-        let a = web3.utils.toChecksumAddress(accounts[0]);
-        currentAccount = a;
+
+        let a1 = web3.utils.toChecksumAddress(accounts[0]);
+        setAccount(a1);
+
+        setChainID(await web3.eth.getChainId());
+
+        let bn = await web3.eth.getBlockNumber();
+        setBlockNumber(bn);
+
+        let block = await web3.eth.getBlock(bn);
+        setBlockTimestamp(block.timestamp);
+
+        let bal = await web3.eth.getBalance(a1);
+        setBalance(web3.utils.fromWei(bal));
       }
-    } else if(window.web3) {
-      web3 = new Web3(window.web3);
     } else {
       alert('please install the wallet!');
       return;
     }
-
-    await getData();
   }
 
   const readContract = async() => {
@@ -539,11 +64,31 @@ function App() {
 
       let symbol = await instance.methods.symbol().call();
       let totalSupply = await instance.methods.totalSupply().call();
-      let bal = await instance.methods.balanceOf(currentAccount).call();
+      let bal = await instance.methods.balanceOf(account).call();
 
       setTokenSymbol(symbol);
       setTotalSupply(web3.utils.fromWei(totalSupply));
       setTokenBalance(web3.utils.fromWei(bal));
+    }
+  }
+
+  const mintToken = async () => {
+    console.log('mint token', mintAmount);
+    if(web3 != null && contract != null) {
+      var instance = new web3.eth.Contract(erc20abi, contract);
+
+      let data = instance.methods.mint(account, web3.utils.toWei(mintAmount)).encodeABI();
+      await sendTx(data);
+    }
+  }
+
+  const burnToken = async () => {
+    console.log('burn token', burnAmount);
+    if(web3 != null && contract != null) {
+      var instance = new web3.eth.Contract(erc20abi, contract);
+
+      let data = instance.methods.burn(web3.utils.toWei(burnAmount)).encodeABI();
+      await sendTx(data);
     }
   }
 
@@ -553,34 +98,38 @@ function App() {
       var instance = new web3.eth.Contract(erc20abi, contract);
 
       let data = instance.methods.transfer(toAddress, web3.utils.toWei(amount)).encodeABI();
-      let egas = await web3.eth.estimateGas({
-        to: contract,
-        data,
-        from: currentAccount,
-        value: '0x00'
-      });
-      let price = await web3.eth.getGasPrice();
-      let nonce = await web3.eth.getTransactionCount(currentAccount);
-
-      setEstimateGas(egas);
-      setGasPrice(price);
-
-      let rawTx = {
-        from: currentAccount,
-        to: contract,
-        nonce: web3.utils.toHex(nonce),
-        gasPrice: price,
-        gas: egas * 2,
-        value: '0x00',
-        data,
-        chainId: chainID
-      };
-
-      web3.eth.sendTransaction(rawTx).on("transactionHash", function(hash) {
-        console.log('hash: ', hash);
-        setTxHash(hash);
-      });
+      await sendTx(data);
     }
+  }
+
+  const sendTx = async(data) => {
+    let egas = await web3.eth.estimateGas({
+      to: contract,
+      data,
+      from: account,
+      value: '0x00'
+    });
+    let price = await web3.eth.getGasPrice();
+    let nonce = await web3.eth.getTransactionCount(account);
+
+    setEstimateGas(egas);
+    setGasPrice(price);
+
+    let rawTx = {
+      from: account,
+      to: contract,
+      nonce: web3.utils.toHex(nonce),
+      gasPrice: price,
+      gas: egas * 2,
+      value: '0x00',
+      data,
+      chainId: chainID
+    };
+
+    web3.eth.sendTransaction(rawTx).on("transactionHash", (hash) => {
+      console.log('hash: ', hash);
+      setTxHash(hash);
+    });
   }
 
   return (
@@ -597,14 +146,17 @@ function App() {
         BlockTimestamp: {blockTimestamp}
       </div>
       <div>
-        Current Account: {currentAccount}
+        Account: {account}
       </div>
       <div>
-        Current Balance: {balance}
+        Balance: {balance}
       </div>
       <hr />
 
-      <input type="text" value={contract} onChange={handleContractChange}></input>
+      <div>
+        Contract Address:
+        <input type="text" size="50" value={contract} onChange={handleContractChange}></input>
+      </div>
       <button onClick={readContract.bind(this)}>Read Contract</button>
       <hr />
 
@@ -620,8 +172,22 @@ function App() {
       <hr />
 
       <div>
+        Mint Token:
+        <input type="text" value={mintAmount} onChange={handleMintAmountChange}></input>
+      </div>
+      <button onClick={mintToken.bind(this)}>Mint</button>
+      <hr />
+
+      <div>
+        Burn Token:
+        <input type="text" value={burnAmount} onChange={handleBurnAmountChange}></input>
+      </div>
+      <button onClick={burnToken.bind(this)}>Burn</button>
+      <hr />
+
+      <div>
         To Address:
-        <input type="toAddress" value={toAddress} onChange={handleToAddressChange}></input>
+        <input type="toAddress" size="50" value={toAddress} onChange={handleToAddressChange}></input>
       </div>
       <div>
         Amount:
